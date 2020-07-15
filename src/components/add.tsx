@@ -103,7 +103,9 @@ const AddVlan: React.FC = () => {
   const {addVlan} = useConfigMutations()
 
   onSubmit(({name, number}) => {
-    addVlan({name, number})
+    const n = parseInt(number as any)
+
+    addVlan({name, number: n})
     clear()
   })
 
@@ -132,8 +134,8 @@ const BrushSelector: React.FC = () => {
 
   return <div>
     <Brush active={brush === 'N'} onClick={() => selectBrush({brush: 'N'})}>N - Not a Member</Brush>
-    <Brush active={brush === 'U'} onClick={() => selectBrush({brush: 'U'})}>U - Untagged Member</Brush>
-    <Brush active={brush === 'T'} onClick={() => selectBrush({brush: 'T'})}>T - Tagged Member</Brush>
+    <Brush active={brush === 'U'} onClick={() => selectBrush({brush: 'U'})} style={{backgroundColor: '#4b7bec'}}>U - Untagged Member</Brush>
+    <Brush active={brush === 'T'} onClick={() => selectBrush({brush: 'T'})} style={{backgroundColor: '#fa8231'}}>T - Tagged Member</Brush>
     <Brush active={brush === 'Tr'} onClick={() => selectBrush({brush: 'Tr'})}>Tr - Trunk Port</Brush>
     <Brush active={brush === 'I'} onClick={() => selectBrush({brush: 'I'})}>Inspect</Brush>
   </div>

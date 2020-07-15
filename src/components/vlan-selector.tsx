@@ -24,7 +24,7 @@ export const VLANSelector: React.FC = () => {
   const {vlans, currentVlan} = useConfig()
   const {setActiveVlan} = useConfigMutations()
 
-  const vids = Object.keys(vlans).map(parseInt)
+  const vids = Object.keys(vlans).map((n) => parseInt(n, 10))
 
   return <SelectionDiv>
     <h3>VLAN</h3>

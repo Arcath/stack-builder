@@ -8,6 +8,34 @@ const AddDiv = styled.div`
   grid-column:3;
 `
 
+const Input = styled.input`
+  width:100%;
+  background:none;
+  color:#fff;
+  border:1px solid #45aaf2;
+  padding:3px;
+  margin-bottom:3px;
+  box-sizing:border-box;
+`
+
+const Select = styled.select`
+  width:100%;
+  background:none;
+  color:#fff;
+  border:1px solid #45aaf2;
+  padding:3px;
+  margin-bottom:3px;
+`
+
+const Submit = styled.input`
+  width:100%;
+  background-color:#20bf6b;
+  color:#fff;
+  border:1px solid #26de81;
+  padding:3px;
+  margin-bottom:3px;
+`
+
 export const Add: React.FC = () => {
   return <AddDiv>
     <BrushSelector />
@@ -30,8 +58,8 @@ const AddCab: React.FC = () => {
 
   return <form {...formBind()}>
     <h3>Add Cab</h3>
-    <input {...bind('name')} />
-    <input type="submit" value="Add Cab" />
+    <Input {...bind('name')} />
+    <Submit type="submit" value="Add Cab" />
   </form>
 }
 
@@ -53,15 +81,19 @@ const AddSwitch: React.FC = () => {
 
   return <form {...formBind()}>
     <h3>Add Switch</h3>
-    <select {...bind('cab')}>
+    <label>Cab</label>
+    <Select {...bind('cab')}>
       {cabs.map((cab) => {
         return <option value={cab.key} key={cab.key}>{cab.name}</option>
       })}
-    </select>
-    <input {...bind('name')} />
-    <input {...bind('mainPorts')} type="number" />
-    <input {...bind('extraPorts')} type="number" />
-    <input type="submit" value="Add Switch" />
+    </Select>
+    <label>Name</label>
+    <Input {...bind('name')} />
+    <label>Main Ports</label>
+    <Input {...bind('mainPorts')} type="number" />
+    <label>Extra Ports</label>
+    <Input {...bind('extraPorts')} type="number" />
+    <Submit type="submit" value="Add Switch" />
   </form>
 }
 
@@ -77,21 +109,33 @@ const AddVlan: React.FC = () => {
 
   return <form {...formBind()}>
     <h3>Add Vlan</h3>
-    <input {...bind('name')} />
-    <input {...bind('number')} min={1} max={4093} type="number" />
-    <input type="submit" value="Add VLAN" />
+    <label>Name</label>
+    <Input {...bind('name')} />
+    <label>Number</label>
+    <Input {...bind('number')} min={1} max={4093} type="number" />
+    <Submit type="submit" value="Add VLAN" />
   </form>
 }
 
+const Brush = styled.button<{active: boolean}>`
+  border:1px solid ${({active}) => (active ? '#26de81' : '#f7b731')};
+  color:#fff;
+  padding:5px;
+  background:none;
+  width:100%;
+  margin-bottom:3px;
+`
+
 const BrushSelector: React.FC = () => {
   const {selectBrush} = useConfigMutations()
+  const {brush} = useConfig()
 
   return <div>
-    <button onClick={() => selectBrush({brush: 'N'})}>N - Not a Member</button>
-    <button onClick={() => selectBrush({brush: 'U'})}>U - Untagged Member</button>
-    <button onClick={() => selectBrush({brush: 'T'})}>T - Tagged Member</button>
-    <button onClick={() => selectBrush({brush: 'Tr'})}>Tr - Trunk Port</button>
-    <button onClick={() => selectBrush({brush: 'I'})}>Inspect</button>
+    <Brush active={brush === 'N'} onClick={() => selectBrush({brush: 'N'})}>N - Not a Member</Brush>
+    <Brush active={brush === 'U'} onClick={() => selectBrush({brush: 'U'})}>U - Untagged Member</Brush>
+    <Brush active={brush === 'T'} onClick={() => selectBrush({brush: 'T'})}>T - Tagged Member</Brush>
+    <Brush active={brush === 'Tr'} onClick={() => selectBrush({brush: 'Tr'})}>Tr - Trunk Port</Brush>
+    <Brush active={brush === 'I'} onClick={() => selectBrush({brush: 'I'})}>Inspect</Brush>
   </div>
 }
 

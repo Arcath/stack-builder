@@ -14,14 +14,17 @@ const SelectionGrid = styled.div<{selections: number}>`
 `
 
 const Selection = styled.button<{active: boolean}>`
-
+  border:1px solid ${({active}) => (active ? '#26de81' : '#f7b731')};
+  color:#fff;
+  padding:5px;
+  background:none;
 `
 
 export const VLANSelector: React.FC = () => {
   const {vlans, currentVlan} = useConfig()
   const {setActiveVlan} = useConfigMutations()
 
-  const vids = Object.keys(vlans) as any as number[]
+  const vids = Object.keys(vlans).map(parseInt)
 
   return <SelectionDiv>
     <h3>VLAN</h3>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import styled from '@emotion/styled'
 import {useForm} from 'react-hook-use-form'
 
@@ -43,6 +43,7 @@ export const Add: React.FC = () => {
     <AddCab />
     <AddSwitch />
     <AddVlan />
+    <Data />
   </AddDiv>
 }
 
@@ -224,5 +225,28 @@ const Inspector: React.FC = () => {
 
       brushPort({port: links[inspect]})
     }}>Linked to {link.cab.name} - {link.sw.name} - {link.port}</p> : ''}
+  </div>
+}
+
+const Data: React.FC = () => {
+  const {cf} = useConfig()
+  const {reset} = useConfigMutations()
+  const [shareLink, setShareLink] = useState('')
+
+  return <div>
+    <h3>Data</h3>
+    <Brush active={false} onClick={() => {
+      reset({})
+    }}>Clear Data</Brush>
+    <Brush active={false} onClick={() => {
+      const json = JSON.stringify(cf)
+
+      console.dir(json)
+
+      const b64 = btoa(json)
+
+      setShareLink(`https://stack-builder.arcath.net/${b64}`)
+    }}>Share</Brush>
+    {shareLink !== '' ? <a href={shareLink}>Direct Link</a> : ''}
   </div>
 }

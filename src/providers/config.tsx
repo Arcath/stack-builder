@@ -67,6 +67,7 @@ interface ReducerPayload{
   selectBrush: {
     brush: Brush
   }
+  reset: {}
 }
 
 interface ReducerAction<T extends keyof ReducerPayload>{
@@ -82,7 +83,8 @@ type ConfigActions =
   ReducerAction<'addSwitch'> |
   ReducerAction<'setActiveVlan'> |
   ReducerAction<'brushPort'> |
-  ReducerAction<'selectBrush'>
+  ReducerAction<'selectBrush'> |
+  ReducerAction<'reset'>
 
 
 export const createPortNumber = ({cab, sw, port}: {cab: Cab, sw: Switch, port: number}): PortNumber => {
@@ -90,7 +92,7 @@ export const createPortNumber = ({cab, sw, port}: {cab: Cab, sw: Switch, port: n
 }
 
 const configReducer = (state: Config, {action, payload}: ConfigActions) => {
-  const newState = Object.assign({}, state)
+  let newState = Object.assign({}, state)
 
   switch(action){
     case 'addCab':
@@ -232,12 +234,19 @@ const configReducer = (state: Config, {action, payload}: ConfigActions) => {
     case 'selectBrush':
       newState.brush = (payload as ReducerPayload['selectBrush']).brush
       break;
+    case 'reset':
+      console.dir(defaultConfig)
+      newState = Object.assign({}, defaultConfig)
   }
+
+  const json = JSON.stringify(newState)
+
+  localStorage.setItem('current-stack', json)
 
   return newState
 }
 
-const initialConfig: Config = {
+const defaultConfig: Config = {
   brush: 'N',
   currentVlan: 1,
   vlans: {1: {
@@ -259,6 +268,18 @@ const initialConfig: Config = {
   linkFrom: ''
 }
 
+let initialConfig: Config = Object.assign({}, defaultConfig)
+
+if(localStorage.getItem('current-stack')){
+  initialConfig = JSON.parse(localStorage.getItem('current-stack')!)
+}
+
+if(window.location.pathname !== '/'){
+  const json = atob(window.location.pathname.substr(1))
+
+  initialConfig = JSON.parse(json)
+}
+
 const ConfigStateContext = createContext(initialConfig)
 const ConfigDispatchContext = createContext<React.Dispatch<ConfigActions> | undefined>(undefined)
 
@@ -272,7 +293,7 @@ export const ConfigContext: React.FC = ({children}) => {
   </ConfigStateContext.Provider>
 }
 
-export const useConfig = (): Config & {dataFromPort: (port: string) => {cab: Cab, sw: Switch, port: string}} => {
+export const useConfig = (): Config & {cf: Config, dataFromPort: (port: string) => {cab: Cab, sw: Switch, port: string}} => {
   const config = useContext(ConfigStateContext)
 
   if(!config){
@@ -293,7 +314,7 @@ export const useConfig = (): Config & {dataFromPort: (port: string) => {cab: Cab
     return {cab, sw, port}
   }
 
-  return {...config, dataFromPort}
+  return {...config, dataFromPort, cf: config}
 }
 
 const dispatchFunction = <T extends keyof ReducerPayload>(action: T, dispatch: React.Dispatch<ReducerAction<T>>) => {
@@ -320,6 +341,7 @@ export const useConfigMutations = () => {
   const setActiveVlan = dispatchFunction<'setActiveVlan'>('setActiveVlan', dispatch)
   const brushPort = dispatchFunction<'brushPort'>('brushPort', dispatch)
   const selectBrush = dispatchFunction<'selectBrush'>('selectBrush', dispatch)
+  const reset = dispatchFunction<'reset'>('reset', dispatch)
 
   return {
     addCab,
@@ -329,6 +351,7 @@ export const useConfigMutations = () => {
     addSwitch,
     setActiveVlan,
     brushPort,
-    selectBrush
+    selectBrush,
+    reset
   }
 }

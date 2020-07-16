@@ -68,6 +68,7 @@ interface ReducerPayload{
     brush: Brush
   }
   reset: {}
+  set: {json: string}
 }
 
 interface ReducerAction<T extends keyof ReducerPayload>{
@@ -84,7 +85,8 @@ type ConfigActions =
   ReducerAction<'setActiveVlan'> |
   ReducerAction<'brushPort'> |
   ReducerAction<'selectBrush'> |
-  ReducerAction<'reset'>
+  ReducerAction<'reset'> |
+  ReducerAction<'set'>
 
 
 export const createPortNumber = ({cab, sw, port}: {cab: Cab, sw: Switch, port: number}): PortNumber => {
@@ -235,8 +237,11 @@ const configReducer = (state: Config, {action, payload}: ConfigActions) => {
       newState.brush = (payload as ReducerPayload['selectBrush']).brush
       break;
     case 'reset':
-      console.dir(defaultConfig)
       newState = Object.assign({}, defaultConfig)
+      break;
+    case 'set':
+      newState = JSON.parse((payload as ReducerPayload['set']).json)
+      break
   }
 
   const json = JSON.stringify(newState)
@@ -342,6 +347,7 @@ export const useConfigMutations = () => {
   const brushPort = dispatchFunction<'brushPort'>('brushPort', dispatch)
   const selectBrush = dispatchFunction<'selectBrush'>('selectBrush', dispatch)
   const reset = dispatchFunction<'reset'>('reset', dispatch)
+  const set = dispatchFunction<'set'>('set', dispatch)
 
   return {
     addCab,
@@ -352,6 +358,7 @@ export const useConfigMutations = () => {
     setActiveVlan,
     brushPort,
     selectBrush,
-    reset
+    reset,
+    set
   }
 }

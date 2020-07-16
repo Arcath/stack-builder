@@ -1,6 +1,7 @@
-import React, {useState} from 'react'
+import React, {useCallback} from 'react'
 import styled from '@emotion/styled'
 import {useForm} from 'react-hook-use-form'
+import {useDropzone} from 'react-dropzone'
 
 import {useConfigMutations, useConfig} from '../providers/config'
 
@@ -230,8 +231,7 @@ const Inspector: React.FC = () => {
 
 const Data: React.FC = () => {
   const {cf} = useConfig()
-  const {reset} = useConfigMutations()
-  const [shareLink, setShareLink] = useState('')
+  const {reset, set} = useConfigMutations()
 
   return <div>
     <h3>Data</h3>
@@ -240,13 +240,54 @@ const Data: React.FC = () => {
     }}>Clear Data</Brush>
     <Brush active={false} onClick={() => {
       const json = JSON.stringify(cf)
+      const blob = new Blob([json], {type: 'text/json'})
 
-      console.dir(json)
+      const a = document.createElement('a')
+      a.download = 'stack.json'
+      a.href = URL.createObjectURL(blob)
+      a.dataset.downloadurl = ['json', a.download, a.href].join(':')
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
 
-      const b64 = btoa(json)
-
-      setShareLink(`https://stack-builder.arcath.net/${b64}`)
-    }}>Share</Brush>
-    {shareLink !== '' ? <a href={shareLink}>Direct Link</a> : ''}
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href)
+      }, 1500)
+    }}>Download</Brush>
+    <Dropzone onComplete={(json) => {
+      set({json})
+    }}>
+      <Brush active={false}>Upload</Brush>
+    </Dropzone>
   </div>
+}
+
+interface DropzoneProps{
+  onComplete: (json: string) => void
+}
+
+export const Dropzone: React.FC<DropzoneProps> = ({onComplete, children}) => {
+  const onDrop = useCallback(acceptedFiles => {
+    const fileReader = new FileReader()
+    const fileToRead = acceptedFiles[0]
+
+    fileReader.readAsBinaryString(fileToRead)
+
+    fileReader.onload = (event: any) => {
+      onComplete(event.target.result)
+    }
+  }, [onComplete])
+  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop})
+
+  return (
+    <div {...getRootProps()}>
+      <input {...getInputProps()} />
+      {
+        isDragActive ?
+          <p>Drop file here</p> :
+          children
+      }
+    </div>
+  )
 }

@@ -130,19 +130,23 @@ const Brush = styled.button<{active: boolean}>`
 
 const BrushSelector: React.FC = () => {
   const {selectBrush} = useConfigMutations()
-  const {brush} = useConfig()
+  const {brush, linkFrom} = useConfig()
 
   return <div>
     <Brush active={brush === 'N'} onClick={() => selectBrush({brush: 'N'})}>N - Not a Member</Brush>
     <Brush active={brush === 'U'} onClick={() => selectBrush({brush: 'U'})} style={{backgroundColor: '#4b7bec'}}>U - Untagged Member</Brush>
     <Brush active={brush === 'T'} onClick={() => selectBrush({brush: 'T'})} style={{backgroundColor: '#fa8231'}}>T - Tagged Member</Brush>
     <Brush active={brush === 'Tr'} onClick={() => selectBrush({brush: 'Tr'})}>Tr - Trunk Port</Brush>
+    <Brush active={brush === 'L'} onClick={() => selectBrush({brush: 'L'})}>
+      {linkFrom === '' ? `Link Ports` : `Link to ${linkFrom}` }
+    </Brush>
     <Brush active={brush === 'I'} onClick={() => selectBrush({brush: 'I'})}>Inspect</Brush>
   </div>
 }
 
 const Inspector: React.FC = () => {
-  const {cabs, vlans, inspect} = useConfig()
+  const {cabs, vlans, inspect, links, dataFromPort, brush} = useConfig()
+  const {selectBrush, brushPort} = useConfigMutations()
 
   if(inspect === ''){
     return <></>
@@ -177,10 +181,25 @@ const Inspector: React.FC = () => {
     }
   })
 
+  let linked = false
+  let link: {cab?: any, sw?: any, port?: any} = {}
+  if(!!links[inspect]){
+    linked = true
+
+    link = dataFromPort(links[inspect])
+  }
+
   if(trunk){
     return <div>
       <h3>{cab.name} - {sw.name} - {port}</h3>
       <p>Trunk Port</p>
+      {linked ? <p onClick={() => {
+        if(brush !== 'I'){
+          selectBrush({brush: 'I'})
+        }
+
+        brushPort({port: links[inspect]})
+      }}>Linked to {link.cab.name} - {link.sw.name} - {link.port}</p> : ''}
     </div>
   }
 
@@ -198,5 +217,12 @@ const Inspector: React.FC = () => {
         return <li key={vid}>{vid}</li>
       })}
     </ul>
+    {linked ? <p onClick={() => {
+      if(brush !== 'I'){
+        selectBrush({brush: 'I'})
+      }
+
+      brushPort({port: links[inspect]})
+    }}>Linked to {link.cab.name} - {link.sw.name} - {link.port}</p> : ''}
   </div>
 }

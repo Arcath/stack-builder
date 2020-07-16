@@ -10,6 +10,8 @@ export interface Config{
   currentVlan: number
   brush: Brush
   inspect: string
+  links: {[from: string]: string}
+  linkFrom: string
 }
 
 export interface VLAN{
@@ -34,7 +36,7 @@ export interface Switch{
 }
 
 export type PortState = "N" | "U" | "T" | "Tr"
-export type Brush =  PortState | 'I'
+export type Brush =  PortState | 'I' | 'L'
 
 interface ReducerPayload{
   addCab: {
@@ -167,6 +169,22 @@ const configReducer = (state: Config, {action, payload}: ConfigActions) => {
         break
       }
 
+      if(newState.brush === 'L'){
+        if(newState.linkFrom === ''){
+          newState.linkFrom = port
+        }else{
+          delete newState.links[newState.links[port]]
+          delete newState.links[newState.links[newState.linkFrom]]
+
+          newState.links[port] = newState.linkFrom
+          newState.links[newState.linkFrom] = port
+
+          newState.linkFrom = ''
+        }
+
+        break
+      }
+
       if(newState.vlans[newState.currentVlan].trunk.includes(port)){
         (Object.keys(newState.vlans) as any[]).forEach((vid) => {
           newState.vlans[vid].untagged = newState.vlans[vid].untagged.filter((p) => {
@@ -236,7 +254,9 @@ const initialConfig: Config = {
       key: uuidv4()
     }
   ],
-  inspect: ''
+  inspect: '',
+  links: {},
+  linkFrom: ''
 }
 
 const ConfigStateContext = createContext(initialConfig)
@@ -252,14 +272,28 @@ export const ConfigContext: React.FC = ({children}) => {
   </ConfigStateContext.Provider>
 }
 
-export const useConfig = (): Config => {
+export const useConfig = (): Config & {dataFromPort: (port: string) => {cab: Cab, sw: Switch, port: string}} => {
   const config = useContext(ConfigStateContext)
 
   if(!config){
     throw new Error('`useConfig` can only be called in a child of <ConfigContext />')
   }
 
-  return config
+  const dataFromPort = (portName: string) => {
+    const [cabKey, swKey, port] = portName.split('#')
+
+    const cab = config.cabs.reduce((c, a) => {
+      return (a.key === cabKey ? a : c)
+    })
+
+    const sw = cab.switches.reduce((s, w) => {
+      return (w.key === swKey ? w : s)
+    })
+
+    return {cab, sw, port}
+  }
+
+  return {...config, dataFromPort}
 }
 
 const dispatchFunction = <T extends keyof ReducerPayload>(action: T, dispatch: React.Dispatch<ReducerAction<T>>) => {

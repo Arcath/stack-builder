@@ -5,6 +5,7 @@ import {ConfigContext} from './providers/config'
 
 import {Add} from './components/add'
 import {Cabs} from './components/cab'
+import {Summary} from './components/summary'
 import {VLANSelector} from './components/vlan-selector'
 
 const Grid = styled.div`
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
       <VLANSelector />
       <Cabs />
       <Add />
+      <Summary />
     </Grid>
   </ConfigContext>
 }

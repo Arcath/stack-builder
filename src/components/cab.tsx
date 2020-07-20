@@ -11,6 +11,8 @@ const CabsDiv = styled.div`
 
 const CabDiv = styled.div`
   border: 2px solid #d1d8e0;
+  padding:5px;
+  box-sizing:border-box;
 `
 export const Cabs = () => {
   const {cabs} = useConfig()

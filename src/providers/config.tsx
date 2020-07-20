@@ -298,7 +298,7 @@ export const ConfigContext: React.FC = ({children}) => {
   </ConfigStateContext.Provider>
 }
 
-export const useConfig = (): Config & {cf: Config, dataFromPort: (port: string) => {cab: Cab, sw: Switch, port: string}} => {
+export const useConfig = (): Config & {cf: Config, dataFromPort: (port: string) => {cab: Cab, sw: Switch, port: string, untagged: number[], tagged: number[], trunk:boolean}} => {
   const config = useContext(ConfigStateContext)
 
   if(!config){
@@ -316,7 +316,25 @@ export const useConfig = (): Config & {cf: Config, dataFromPort: (port: string) 
       return (w.key === swKey ? w : s)
     })
 
-    return {cab, sw, port}
+    const untagged: number[] = []
+    const tagged: number[] = []
+    let trunk = false
+
+    Object.keys(config.vlans).forEach((vid) => {
+      if(config.vlans[vid as any].trunk.includes(portName)){
+        trunk = true
+      }
+
+      if(config.vlans[vid as any].untagged.includes(portName)){
+        untagged.push(vid as any)
+      }
+
+      if(config.vlans[vid as any].tagged.includes(portName)){
+        tagged.push(vid as any)
+      }
+    })
+
+    return {cab, sw, port, untagged, tagged, trunk}
   }
 
   return {...config, dataFromPort, cf: config}

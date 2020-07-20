@@ -147,41 +147,14 @@ const BrushSelector: React.FC = () => {
 }
 
 const Inspector: React.FC = () => {
-  const {cabs, vlans, inspect, links, dataFromPort, brush} = useConfig()
+  const {inspect, links, dataFromPort, brush} = useConfig()
   const {selectBrush, brushPort} = useConfigMutations()
 
   if(inspect === ''){
     return <></>
   }
 
-  const [cabKey, swKey, port] = inspect.split('#')
-
-  const cab = cabs.reduce((c, a) => {
-    return (a.key === cabKey ? a : c)
-  })
-
-  const sw = cab.switches.reduce((s, w) => {
-    return (w.key === swKey ? w : s)
-  })
-
-  const untagged: number[] = []
-  const tagged: number[] = []
-  let trunk = false
-
-  Object.keys(vlans).forEach((vid) => {
-    if(vlans[vid as any].trunk.includes(inspect)){
-      trunk = true
-      return
-    }
-
-    if(vlans[vid as any].untagged.includes(inspect)){
-      untagged.push(vid as any)
-    }
-
-    if(vlans[vid as any].tagged.includes(inspect)){
-      tagged.push(vid as any)
-    }
-  })
+  const {trunk, cab, sw, port, untagged, tagged} = dataFromPort(inspect)
 
   let linked = false
   let link: {cab?: any, sw?: any, port?: any} = {}
@@ -207,18 +180,8 @@ const Inspector: React.FC = () => {
 
   return <div>
     <h3>{cab.name} - {sw.name} - {port}</h3>
-    <h4>Untagged</h4>
-    <ul>
-      {untagged.map((vid) => {
-        return <li key={vid}>{vid}</li>
-      })}
-    </ul>
-    <h4>Tagged</h4>
-    <ul>
-      {tagged.map((vid) => {
-        return <li key={vid}>{vid}</li>
-      })}
-    </ul>
+    <p>Untagged: {untagged.join(', ')}</p>
+    <p>Tagged: {tagged.join(', ')}</p>
     {linked ? <p onClick={() => {
       if(brush !== 'I'){
         selectBrush({brush: 'I'})
